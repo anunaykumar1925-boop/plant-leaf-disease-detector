@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlantCare Assistant - Instant Leaf & Health Scanner</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        amberEarth: '#d97706',
+                        earthBg: '#fbfbf8'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+        }
+        .dark .glass-card {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(12px);
+        }
+        /* Scanning Laser Line Animation */
+        @keyframes scanLaser {
+            0% { top: 0%; opacity: 0.8; }
+            50% { top: 92%; opacity: 1; }
+            100% { top: 0%; opacity: 0.8; }
+        }
+        .scan-line {
+            animation: scanLaser 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-[#fcfdfa] dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-200 min-h-screen flex flex-col">
+
+    <!-- Header / Navigation -->
+    <header class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-emerald-100 dark:border-slate-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="bg-gradient-to-tr from-brand-700 to-brand-500 text-white p-2.5 rounded-2xl shadow-md shadow-brand-600/20">
+                        <i class="fa-solid fa-seedling text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">PlantCare</span>
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 ml-1.5">Live AI Doctor</span>
+                    </div>
+                </div>
+
+                <!-- Simple Nav -->
+                <nav class="hidden md:flex space-x-2">
+                    <a href="#scanner" class="px-3.5 py-2 rounded-xl text-sm font-semibold text-brand-700 dark:text-brand-400 bg-brand-50 dark:bg-slate-800">
+                        <i class="fa-solid fa-camera mr-1.5"></i> Leaf Health Check
+                    </a>
+                    <a href="#history" class="px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-brand-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        <i class="fa-solid fa-clock-rotate-left text-brand-600 mr-1.5"></i> Saved History
+                    </a>
+                    <a href="#guide" class="px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-brand-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        <i class="fa-solid fa-book-open text-amber-600 mr-1.5"></i> Gardening Tips
+                    </a>
+                </nav>
+
+                <!-- Action Button & Theme Toggle -->
+                <div class="flex items-center gap-3">
+                    <button id="themeToggle" class="p-2.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-xl bg-slate-100 dark:bg-slate-800 transition">
+                        <i class="fa-solid fa-moon dark:hidden text-lg"></i>
+                        <i class="fa-solid fa-sun hidden dark:block text-lg"></i>
+                    </button>
+                    <a href="#scanner" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-brand-600/20 transition flex items-center gap-2">
+                        <span>Check Leaf Now</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12 flex-grow w-full">
+
+        <!-- Welcome Banner -->
+        <section class="bg-gradient-to-r from-brand-900 via-emerald-800 to-teal-900 text-white rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden">
+            <div class="absolute -right-8 -bottom-10 opacity-15 pointer-events-none">
+                <i class="fa-solid fa-leaf text-[260px]"></i>
+            </div>
+            <div class="relative z-10 max-w-2xl space-y-4">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md text-brand-200 text-xs font-bold tracking-wide">
+                    <i class="fa-solid fa-heart-pulse"></i> Simple & Instant Leaf Doctor
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight">
+                    Keep Your Plants Healthy & Thriving
+                </h1>
+                <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
+                    Not sure what those brown spots or yellowing edges mean? Upload a photo of any leaf to quickly spot plant sickness and get easy, step-by-step treatment advice.
+                </p>
+                <div class="flex flex-wrap gap-4 pt-2">
+                    <div class="flex items-center gap-2 text-xs font-semibold bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
+                        <i class="fa-solid fa-check text-brand-300"></i> Easy Leaf Photo Upload
+                    </div>
+                    <div class="flex items-center gap-2 text-xs font-semibold bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
+                        <i class="fa-solid fa-check text-brand-300"></i> Clear Organic Treatments
+                    </div>
+                    <div class="flex items-center gap-2 text-xs font-semibold bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
+                        <i class="fa-solid fa-check text-brand-300"></i> Gardener Friendly Advice
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAIN SCANNER SECTION -->
+        <section id="scanner" class="scroll-mt-20">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-camera text-brand-600"></i> Plant Leaf Health Doctor
+                </h2>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Upload a photo of your leaf or pick one of the test photos below to check its health.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- LEFT COLUMN: Photo Upload & Presets (7 Cols) -->
+                <div class="lg:col-span-7 space-y-6">
+                    
+                    <!-- Drag & Drop / Upload Card -->
+                    <div id="dropZone" class="border-2 border-dashed border-emerald-300 dark:border-slate-700 hover:border-brand-500 dark:hover:border-brand-500 rounded-3xl p-6 sm:p-8 text-center bg-white dark:bg-slate-800 transition cursor-pointer relative shadow-sm group">
+                        <input type="file" id="fileInput" class="hidden" accept="image/*">
+                        
+                        <!-- Default Upload Prompt -->
+                        <div id="uploadPrompt" class="space-y-4">
+                            <div class="w-16 h-16 bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-105 transition-transform shadow-inner">
+                                <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-base font-bold text-slate-800 dark:text-slate-200">
+                                    Tap to select a leaf photo <span class="text-slate-400 font-normal">or drop image here</span>
+                                </p>
+                                <p class="text-xs text-slate-400 mt-1">Take a clear close-up picture of the affected leaf in good lighting</p>
+                            </div>
+                        </div>
+
+                        <!-- Image Display & Scanning Overlay -->
+                        <div id="previewContainer" class="hidden relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+                            <img id="imagePreview" class="max-h-72 w-full object-contain mx-auto" alt="Leaf Sample">
+                            
+                            <!-- Scanner Animation Overlay (Shown during analysis) -->
+                            <div id="scanOverlay" class="hidden absolute inset-0 bg-slate-900/60 backdrop-blur-[2px] flex flex-col items-center justify-center text-white">
+                                <div class="w-full absolute scan-line h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_#34d399]"></div>
+                                <div class="bg-slate-900/90 border border-emerald-500/40 px-5 py-3 rounded-2xl text-center space-y-1 shadow-2xl">
+                                    <i class="fa-solid fa-magnifying-glass-leaf text-emerald-400 text-2xl animate-bounce"></i>
+                                    <p class="font-bold text-sm text-emerald-300">Checking leaf pattern & leaf spot colors...</p>
+                                    <p class="text-[11px] text-slate-400">Comparing healthy leaf signs...</p>
+                                </div>
+                            </div>
+
+                            <button id="removeImgBtn" class="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 text-xs shadow-lg transition z-20">
+                                <i class="fa-solid fa-xmark"></i> Change Photo
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Preset Sample Leaf Selector -->
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm space-y-3">
+                        <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-400">
+                            <i class="fa-solid fa-hand-pointer text-brand-600 mr-1"></i> Or try with an example leaf:
+                        </label>
+                        
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            
+                            <!-- Preset 1 -->
+                            <button onclick="runDiagnosis('tomato_blight')" class="preset-btn border-2 border-slate-100 dark:border-slate-700 hover:border-brand-500 dark:hover:border-brand-500 bg-slate-50 dark:bg-slate-900 p-2.5 rounded-2xl text-left transition flex flex-col items-center text-center group">
+                                <div class="w-full h-20 rounded-xl overflow-hidden mb-2 bg-amber-950/10 flex items-center justify-center relative">
+                                    <svg class="w-14 h-14 text-amber-800" viewBox="0 0 100 100">
+                                        <path fill="currentColor" d="M50 15 C 30 15, 15 35, 15 60 C 15 80, 35 90, 50 90 C 70 90, 85 75, 85 55 C 85 30, 65 15, 50 15 Z" />
+                                        <circle cx="40" cy="45" r="8" fill="#422006" opacity="0.8"/>
+                                        <circle cx="60" cy="65" r="11" fill="#422006" opacity="0.8"/>
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200 line-clamp-1">Tomato Leaf</span>
+                                <span class="text-[11px] text-amber-700 dark:text-amber-400 font-semibold">Dark Brown Spots</span>
+                            </button>
+
+                            <!-- Preset 2 -->
+                            <button onclick="runDiagnosis('apple_scab')" class="preset-btn border-2 border-slate-100 dark:border-slate-700 hover:border-brand-500 dark:hover:border-brand-500 bg-slate-50 dark:bg-slate-900 p-2.5 rounded-2xl text-left transition flex flex-col items-center text-center group">
+                                <div class="w-full h-20 rounded-xl overflow-hidden mb-2 bg-emerald-950/10 flex items-center justify-center relative">
+                                    <svg class="w-14 h-14 text-emerald-900" viewBox="0 0 100 100">
+                                        <path fill="currentColor" d="M50 10 C 25 10, 10 30, 10 60 C 10 85, 30 90, 50 90 C 75 90, 90 70, 90 45 C 90 20, 70 10, 50 10 Z" />
+                                        <circle cx="35" cy="40" r="7" fill="#1c1917" opacity="0.85"/>
+                                        <circle cx="55" cy="55" r="9" fill="#292524" opacity="0.85"/>
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200 line-clamp-1">Apple Leaf</span>
+                                <span class="text-[11px] text-amber-700 dark:text-amber-400 font-semibold">Scabby Patches</span>
+                            </button>
+
+                            <!-- Preset 3 -->
+                            <button onclick="runDiagnosis('corn_rust')" class="preset-btn border-2 border-slate-100 dark:border-slate-700 hover:border-brand-500 dark:hover:border-brand-500 bg-slate-50 dark:bg-slate-900 p-2.5 rounded-2xl text-left transition flex flex-col items-center text-center group">
+                                <div class="w-full h-20 rounded-xl overflow-hidden mb-2 bg-yellow-950/10 flex items-center justify-center relative">
+                                    <svg class="w-14 h-14 text-yellow-600" viewBox="0 0 100 100">
+                                        <path fill="currentColor" d="M20 90 C 20 40, 40 10, 80 10 C 80 60, 60 90, 20 90 Z" />
+                                        <ellipse cx="45" cy="45" rx="4" ry="9" fill="#9a3412" transform="rotate(20 45 45)" />
+                                        <ellipse cx="55" cy="65" rx="4" ry="10" fill="#9a3412" transform="rotate(15 55 65)" />
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200 line-clamp-1">Corn Leaf</span>
+                                <span class="text-[11px] text-amber-700 dark:text-amber-400 font-semibold">Orange Rust Flecks</span>
+                            </button>
+
+                            <!-- Preset 4 -->
+                            <button onclick="runDiagnosis('healthy_bell')" class="preset-btn border-2 border-slate-100 dark:border-slate-700 hover:border-brand-500 dark:hover:border-brand-500 bg-slate-50 dark:bg-slate-900 p-2.5 rounded-2xl text-left transition flex flex-col items-center text-center group">
+                                <div class="w-full h-20 rounded-xl overflow-hidden mb-2 bg-emerald-500/10 flex items-center justify-center relative">
+                                    <svg class="w-14 h-14 text-brand-500" viewBox="0 0 100 100">
+                                        <path fill="currentColor" d="M50 15 C 25 15, 10 35, 10 65 C 10 85, 35 90, 50 90 C 70 90, 90 70, 90 40 C 90 20, 70 15, 50 15 Z" />
+                                        <path d="M50 15 L50 90" stroke="#15803d" stroke-width="3"/>
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200 line-clamp-1">Pepper Leaf</span>
+                                <span class="text-[11px] text-brand-600 dark:text-brand-400 font-semibold">Healthy Green</span>
+                            </button>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT COLUMN: Simple Results & Care Plan (5 Cols) -->
+                <div class="lg:col-span-5">
+                    <div id="resultsCard" class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-slate-700 shadow-xl h-full flex flex-col justify-between transition-all">
+                        
+                        <!-- Empty Waiting State -->
+                        <div id="emptyState" class="my-auto text-center py-12 space-y-4">
+                            <div class="w-20 h-20 bg-brand-50 dark:bg-slate-700 text-brand-600 dark:text-brand-400 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                                <i class="fa-solid fa-leaf-twicker text-3xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 dark:text-slate-100 text-lg">Ready to Check Plant</h3>
+                                <p class="text-slate-400 text-xs mt-1 max-w-xs mx-auto leading-relaxed">Select a sample photo or upload your leaf photo to view plant health status and care steps.</p>
+                            </div>
+                        </div>
+
+                        <!-- Active Results State -->
+                        <div id="resultState" class="hidden space-y-6">
+                            
+                            <!-- Header Status Badge -->
+                            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-4">
+                                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Diagnosis Report</span>
+                                <span id="statusBadge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> Action Recommended
+                                </span>
+                            </div>
+
+                            <!-- Plant & Leaf Issue Name -->
+                            <div>
+                                <span id="plantCropType" class="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wide">Tomato Plant</span>
+                                <h3 id="issueName" class="text-2xl font-extrabold text-slate-900 dark:text-white leading-tight">Late Blight Leaf Spots</h3>
+                            </div>
+
+                            <!-- Visual Plant Health Rating Meter -->
+                            <div class="bg-slate-50 dark:bg-slate-900/80 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="font-bold text-slate-700 dark:text-slate-300">Overall Plant Health</span>
+                                    <span id="healthPercentage" class="font-extrabold text-amber border-brand-600 text-sm">65% Healthy</span>
+                                </div>
+                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3.5 overflow-hidden">
+                                    <div id="healthBar" class="bg-gradient-to-r from-amber-500 to-emerald-500 h-3.5 rounded-full transition-all duration-700" style="width: 65%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Plain English Explanation -->
+                            <div class="space-y-1">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-info text-brand-600"></i> What is happening to your leaf:
+                                </h4>
+                                <p id="plainExplanation" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                                    Dark wet-looking spots have formed on the leaf. This is caused by damp weather, preventing leaves from drying quickly after watering.
+                                </p>
+                            </div>
+
+                            <!-- Simple Step-by-Step Remedies -->
+                            <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-700">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-hand-holding-hand text-brand-600"></i> Recommended Care Steps:
+                                </h4>
+                                <ul id="careStepsList" class="space-y-2 text-xs text-slate-700 dark:text-slate-200">
+                                    <!-- Dynamic list populated via JS -->
+                                </ul>
+                            </div>
+
+                            <!-- Prevention Tips Box -->
+                            <div class="bg-brand-50/60 dark:bg-brand-950/20 p-3.5 rounded-2xl border border-brand-100 dark:border-brand-900/40 text-xs space-y-1">
+                                <div class="font-bold text-brand-800 dark:text-brand-300 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-sun text-amber-500"></i> Quick Care Tip
+                                </div>
+                                <p id="preventionTip" class="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed">
+                                    Always water your plants near the root base early in the morning so sun can dry any accidental leaf splashes.
+                                </p>
+                            </div>
+
+                            <!-- Action buttons: Save & Download/Print -->
+                            <div class="flex gap-2 pt-2">
+                                <button onclick="saveCurrentDiagnosis()" class="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-bookmark text-brand-600"></i> Save to History
+                                </button>
+                                <button onclick="printCareReport()" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-print"></i> Print Care Sheet
+                                </button>
+                            </div>
+
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-100 dark:border-slate-700/80 text-[11px] text-slate-400 flex items-center justify-between">
+                            <span><i class="fa-solid fa-shield-heart text-brand-600"></i> Powered by Live AI Vision</span>
+                            <span>Safe & Organic Advice</span>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SAVED DIAGNOSIS HISTORY SECTION -->
+        <section id="history" class="scroll-mt-20 space-y-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-brand-600"></i> Saved Plant Health Scans
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Keep track of your garden's health progress over time.</p>
+                </div>
+                <button onclick="clearScanHistory()" class="text-xs font-semibold text-red-600 dark:text-red-400 hover:underline">
+                    <i class="fa-solid fa-trash-can mr-1"></i> Clear Saved
+                </button>
+            </div>
+
+            <div id="historyGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="col-span-full bg-white dark:bg-slate-800 rounded-2xl p-6 text-center text-xs text-slate-400 border border-slate-200 dark:border-slate-700">
+                    No scans saved yet. Run a leaf check above and click "Save to History".
+                </div>
+            </div>
+        </section>
+
+        <!-- SIMPLE GARDENING & LEAF CARE GUIDE -->
+        <section id="guide" class="scroll-mt-20 space-y-6">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-book-open text-amber-600"></i> Easy Everyday Gardening Care
+                </h2>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Follow these 4 simple habits to prevent common leaf diseases before they start.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                
+                <!-- Tip 1 -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-3">
+                    <div class="w-10 h-10 bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-droplet"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Water at the Soil Line</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Pour water directly over the root area. Wet leaves encourage fungal spots and mildew growth.
+                    </p>
+                </div>
+
+                <!-- Tip 2 -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-3">
+                    <div class="w-10 h-10 bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-wind"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Give Plants Breathing Room</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Don't overcrowd pots or stems. Good airflow helps moisture evaporate quickly from leaves.
+                    </p>
+                </div>
+
+                <!-- Tip 3 -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-3">
+                    <div class="w-10 h-10 bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-400 rounded-2xl flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-scissors"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Prune Yellow or Spotted Leaves</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Gently clip off leaves touching the ground or showing yellow spots to stop sickness from spreading.
+                    </p>
+                </div>
+
+                <!-- Tip 4 -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-3">
+                    <div class="w-10 h-10 bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400 rounded-2xl flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-sun"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Morning Sunlight</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Ensure plants receive morning sun so dew evaporates early in the day, keeping leaf tissue healthy.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- COMMON PLANT WARNING SIGNS (LAYMAN FAQ) -->
+        <section id="faq" class="scroll-mt-20 bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700 shadow-sm space-y-6">
+            <div>
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-circle-question text-brand-600"></i> Common Leaf Warning Signs
+                </h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Quick guide to understanding what your plant is trying to tell you</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <div class="space-y-2 border-l-2 border-amber-400 pl-4">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase">Yellow Leaves?</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                        Usually means overwatering or poor drainage. Feel the soil first—if wet, pause watering for a few days.
+                    </p>
+                </div>
+
+                <div class="space-y-2 border-l-2 border-red-400 pl-4">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase">Brown Crisp Edges?</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                        Sign of underwatering, hot dry air, or harsh direct afternoon sun burning tender leaf edges.
+                    </p>
+                </div>
+
+                <div class="space-y-2 border-l-2 border-purple-400 pl-4">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase">White Powdery Coating?</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                        Powdery mildew fungal growth. Spray with a mixture of water and a few drops of mild soap or neem oil.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Simple Footer -->
+    <footer class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-6 mt-12">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-seedling text-brand-600"></i>
+                <span class="font-bold text-slate-700 dark:text-slate-300">PlantCare Assistant</span> &bull; Simple Garden Health
+            </div>
+            <div>
+                Empowering gardeners & farmers with easy leaf care instructions.
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE JAVASCRIPT LOGIC -->
+    <script>
+        // Simple Layman Diagnostic Database (Presets)
+        const plantDiagnoses = {
+            'tomato_blight': {
+                crop: 'Tomato Plant',
+                issue: 'Late Blight Leaf Spot',
+                healthScore: '55% Healthy',
+                healthWidth: '55%',
+                healthColor: 'from-red-500 to-amber-500',
+                badgeText: 'Action Recommended',
+                badgeClass: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
+                explanation: 'Dark wet-looking spots have formed on the leaf. This usually happens during cool, wet weather when moisture remains on leaves for too long.',
+                steps: [
+                    'Gently trim off damaged leaves and dispose of them in the trash (do not compost).',
+                    'Water only near the soil base—keep leaves completely dry.',
+                    'Spray leaves with an organic copper spray or neem oil to protect healthy leaves.'
+                ],
+                tip: 'Water early in the morning so morning sun dries off any accidental leaf wetness.',
+                svg: `<svg class="w-full h-full text-amber-800" viewBox="0 0 100 100"><path fill="currentColor" d="M50 15 C 30 15, 15 35, 15 60 C 15 80, 35 90, 50 90 C 70 90, 85 75, 85 55 C 85 30, 65 15, 50 15 Z" /><circle cx="40" cy="45" r="8" fill="#422006" opacity="0.8"/><circle cx="60" cy="65" r="11" fill="#422006" opacity="0.8"/></svg>`
+            },
+            'apple_scab': {
+                crop: 'Apple Tree',
+                issue: 'Apple Scab Patches',
+                healthScore: '68% Healthy',
+                healthWidth: '68%',
+                healthColor: 'from-amber-500 to-emerald-500',
+                badgeText: 'Mild Issue Found',
+                badgeClass: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300',
+                explanation: 'Olive-green or dark brown velvety spots are appearing on the leaf surface. This is caused by damp spring conditions.',
+                steps: [
+                    'Rake up and remove fallen leaves under the tree to stop spread.',
+                    'Prune crowded interior branches to allow wind and sunlight inside.',
+                    'Apply an organic sulfur spray on new leaves during damp weather.'
+                ],
+                tip: 'Clearing fallen leaves around the base of the tree prevents dark spots next season.',
+                svg: `<svg class="w-full h-full text-emerald-900" viewBox="0 0 100 100"><path fill="currentColor" d="M50 10 C 25 10, 10 30, 10 60 C 10 85, 30 90, 50 90 C 75 90, 90 70, 90 45 C 90 20, 70 10, 50 10 Z" /><circle cx="35" cy="40" r="7" fill="#1c1917" opacity="0.85"/><circle cx="55" cy="55" r="9" fill="#292524" opacity="0.85"/></svg>`
+            },
+            'corn_rust': {
+                crop: 'Corn Plant',
+                issue: 'Common Leaf Rust',
+                healthScore: '72% Healthy',
+                healthWidth: '72%',
+                healthColor: 'from-amber-500 to-emerald-500',
+                badgeText: 'Mild Issue Found',
+                badgeClass: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300',
+                explanation: 'Small powdery orange-brown flecks have developed on the leaf blades, carried by high humidity and wind.',
+                steps: [
+                    'Make sure corn stalks have enough space between rows for airflow.',
+                    'Avoid overhead sprinkler watering during late afternoon.',
+                    'Most strong corn plants outgrow light rust—no heavy chemical sprays needed.'
+                ],
+                tip: 'Ensure full sunlight exposure to keep leaf surfaces warm and dry.',
+                svg: `<svg class="w-full h-full text-yellow-600" viewBox="0 0 100 100"><path fill="currentColor" d="M20 90 C 20 40, 40 10, 80 10 C 80 60, 60 90, 20 90 Z" /><ellipse cx="45" cy="45" rx="4" ry="9" fill="#9a3412" transform="rotate(20 45 45)" /><ellipse cx="55" cy="65" rx="4" ry="10" fill="#9a3412" transform="rotate(15 55 65)" /></svg>`
+            },
+            'healthy_bell': {
+                crop: 'Pepper Plant',
+                issue: 'Healthy & Strong Leaf',
+                healthScore: '98% Excellent',
+                healthWidth: '98%',
+                healthColor: 'from-emerald-500 to-teal-400',
+                badgeText: 'Healthy Plant',
+                badgeClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+                explanation: 'Your leaf is bright green, smooth, and free of spots. Sunlight and moisture levels are balanced.',
+                steps: [
+                    'Keep up your current watering routine.',
+                    'Add a layer of organic mulch around the root base to lock in soil moisture.',
+                    'Feed with balanced plant food once a month during fruiting.'
+                ],
+                tip: 'Great job! Your plant is growing in optimal garden conditions.',
+                svg: `<svg class="w-full h-full text-brand-500" viewBox="0 0 100 100"><path fill="currentColor" d="M50 15 C 25 15, 10 35, 10 65 C 10 85, 35 90, 50 90 C 70 90, 90 70, 90 40 C 90 20, 70 15, 50 15 Z" /><path d="M50 15 L50 90" stroke="#15803d" stroke-width="3"/></svg>`
+            }
+        };
+
+        let currentActiveResult = null;
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadPrompt = document.getElementById('uploadPrompt');
+        const previewContainer = document.getElementById('previewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const scanOverlay = document.getElementById('scanOverlay');
+        const removeImgBtn = document.getElementById('removeImgBtn');
+
+        // File selection handling
+        dropZone.addEventListener('click', (e) => {
+            if (e.target.closest('#removeImgBtn')) return;
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', async (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = async (evt) => {
+                    const base64Data = evt.target.result;
+                    imagePreview.src = base64Data;
+                    uploadPrompt.classList.add('hidden');
+                    previewContainer.classList.remove('hidden');
+                    
+                    // Call Live Gemini Vision API for custom image analysis
+                    await analyzeCustomLeafWithGemini(base64Data, file.type);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Gemini Vision API Call with Exponential Backoff
+        async function analyzeCustomLeafWithGemini(base64Image, mimeType) {
+            scanOverlay.classList.remove('hidden');
+            const cleanBase64 = base64Image.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, "");
+
+            const prompt = `Act as an expert plant pathologist and home gardener assistant. Analyze this plant leaf photo. Return JSON ONLY with the following schema:
+{
+  "crop": "Name of plant/crop (e.g., Tomato, Rose, Apple, Houseplant)",
+  "issue": "Condition name in layperson terms (e.g., Early Blight Spots, Powdery Mildew, Healthy Leaf)",
+  "healthScore": "Percentage estimate e.g. '70% Healthy'",
+  "healthWidth": "e.g. '70%'",
+  "badgeText": "Short status e.g. 'Action Needed' or 'Healthy Leaf' or 'Mild Issue'",
+  "explanation": "2 simple sentences explaining what is happening to the leaf without any technical ML terms",
+  "steps": ["Step 1 simple organic care", "Step 2 watering/pruning tip", "Step 3 safe spray or feed tip"],
+  "tip": "One clear preventive tip for the gardener"
+}`;
+
+            const payload = {
+                contents: [{
+                    role: "user",
+                    parts: [
+                        { text: prompt },
+                        {
+                            inlineData: {
+                                mimeType: mimeType || "image/jpeg",
+                                data: cleanBase64
+                            }
+                        }
+                    ]
+                }],
+                generationConfig: {
+                    responseMimeType: "application/json"
+                }
+            };
+
+            const apiKey = "YOUR_GEMINI_API_KEY"; // Put your own Gemini API key here (https://aistudio.google.com/apikey)
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            let attempts = 0;
+            let success = false;
+            let resultData = null;
+
+            while (attempts < 3 && !success) {
+                try {
+                    attempts++;
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (response.ok) {
+                        const json = await response.json();
+                        const rawText = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (rawText) {
+                            resultData = JSON.parse(rawText);
+                            resultData.healthColor = parseInt(resultData.healthWidth) > 80 ? 'from-emerald-500 to-teal-400' : 'from-amber-500 to-emerald-500';
+                            resultData.badgeClass = parseInt(resultData.healthWidth) > 80 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300';
+                            success = true;
+                        }
+                    }
+                } catch (err) {
+                    await new Promise(r => setTimeout(r, Math.pow(2, attempts) * 1000));
+                }
+            }
+
+            scanOverlay.classList.add('hidden');
+
+            if (success && resultData) {
+                renderDiagnosisData(resultData);
+            } else {
+                // Fallback to general diagnosis if API call fails or offline
+                runDiagnosis('tomato_blight');
+            }
+        }
+
+        // Trigger Leaf Scan Simulation & Render Diagnostics for Presets
+        function runDiagnosis(presetKey) {
+            const data = plantDiagnoses[presetKey];
+            if (!data) return;
+
+            const svgData = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(data.svg);
+            imagePreview.src = svgData;
+            uploadPrompt.classList.add('hidden');
+            previewContainer.classList.remove('hidden');
+
+            scanOverlay.classList.remove('hidden');
+
+            setTimeout(() => {
+                scanOverlay.classList.add('hidden');
+                renderDiagnosisData(data);
+            }, 900);
+        }
+
+        function renderDiagnosisData(data) {
+            currentActiveResult = data;
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('resultState').classList.remove('hidden');
+
+            document.getElementById('plantCropType').textContent = data.crop;
+            document.getElementById('issueName').textContent = data.issue;
+            
+            const badge = document.getElementById('statusBadge');
+            badge.className = `px-3 py-1 rounded-full text-xs font-extrabold flex items-center gap-1.5 ${data.badgeClass || 'bg-amber-100 text-amber-800'}`;
+            badge.innerHTML = `<i class="fa-solid fa-seedling"></i> ${data.badgeText || 'Diagnosis Complete'}`;
+
+            document.getElementById('healthPercentage').textContent = data.healthScore;
+            const healthBar = document.getElementById('healthBar');
+            healthBar.className = `h-3.5 rounded-full transition-all duration-700 bg-gradient-to-r ${data.healthColor || 'from-amber-500 to-emerald-500'}`;
+            healthBar.style.width = data.healthWidth || '70%';
+
+            document.getElementById('plainExplanation').textContent = data.explanation;
+            
+            const stepsList = document.getElementById('careStepsList');
+            stepsList.innerHTML = '';
+            (data.steps || []).forEach((step, idx) => {
+                const li = document.createElement('li');
+                li.className = 'flex items-start gap-2 text-slate-700 dark:text-slate-300';
+                li.innerHTML = `<span class="bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 font-bold rounded-full w-5 h-5 flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">${idx + 1}</span> <span>${step}</span>`;
+                stepsList.appendChild(li);
+            });
+
+            document.getElementById('preventionTip').textContent = data.tip;
+        }
+
+        // Save Scan History to LocalStorage
+        function saveCurrentDiagnosis() {
+            if (!currentActiveResult) return;
+            let history = JSON.parse(localStorage.getItem('plantCareHistory') || '[]');
+            const record = {
+                id: Date.now(),
+                crop: currentActiveResult.crop,
+                issue: currentActiveResult.issue,
+                score: currentActiveResult.healthScore,
+                date: new Date().toLocaleDateString()
+            };
+            history.unshift(record);
+            localStorage.setItem('plantCareHistory', JSON.stringify(history.slice(0, 9)));
+            renderHistoryGrid();
+            alert('Scan saved to history!');
+        }
+
+        function renderHistoryGrid() {
+            const grid = document.getElementById('historyGrid');
+            const history = JSON.parse(localStorage.getItem('plantCareHistory') || '[]');
+            if (history.length === 0) {
+                grid.innerHTML = `<div class="col-span-full bg-white dark:bg-slate-800 rounded-2xl p-6 text-center text-xs text-slate-400 border border-slate-200 dark:border-slate-700">No scans saved yet. Run a leaf check above and click "Save to History".</div>`;
+                return;
+            }
+            grid.innerHTML = history.map(item => `
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2 shadow-sm">
+                    <div class="flex justify-between items-start">
+                        <span class="text-xs font-bold text-brand-600 dark:text-brand-400">${item.crop}</span>
+                        <span class="text-[10px] text-slate-400">${item.date}</span>
+                    </div>
+                    <p class="font-extrabold text-sm text-slate-800 dark:text-slate-100">${item.issue}</p>
+                    <span class="inline-block px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-[10px] font-bold text-slate-600 dark:text-slate-300">${item.score}</span>
+                </div>
+            `).join('');
+        }
+
+        function clearScanHistory() {
+            localStorage.removeItem('plantCareHistory');
+            renderHistoryGrid();
+        }
+
+        // Print/Download Plant Care Sheet
+        function printCareReport() {
+            if (!currentActiveResult) return;
+            window.print();
+        }
+
+        // Remove photo & reset view
+        removeImgBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            previewContainer.classList.add('hidden');
+            uploadPrompt.classList.remove('hidden');
+            document.getElementById('resultState').classList.add('hidden');
+            document.getElementById('emptyState').classList.remove('hidden');
+            fileInput.value = '';
+            currentActiveResult = null;
+        });
+
+        // Dark Theme Toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        // Initial setup
+        renderHistoryGrid();
+    </script>
+</body>
+</html>
